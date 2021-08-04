@@ -1,17 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-
-class JournalEntryFields {
-  late String title;
-  late String body;
-  late String rating;
-  late String date;
-
-  @override
-  String toString(){
-    return 'Title: $title, Body: $body, Rating: $rating, Date: $date';
-  }
-}
+import '../db/database_manager.dart';
+import '../db/journal_entry_dto.dart';
+import '../screens/journal_entry_list.dart';
 
 class JournalEntryForm extends StatefulWidget {
   @override
@@ -20,7 +10,7 @@ class JournalEntryForm extends StatefulWidget {
 
 class _JournalEntryFormState extends State<JournalEntryForm> {
   final formKey = GlobalKey<FormState>();
-  final journalEntryValues = JournalEntryFields();
+  final journalEntryValues = JournalEntryDTO();
 
   @override
   Widget build(BuildContext context) {
@@ -38,39 +28,8 @@ class _JournalEntryFormState extends State<JournalEntryForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                    onPressed:() {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('Cancel')
-                ),
-                ElevatedButton(
-                  onPressed:() async {
-                    if(formKey.currentState!.validate()) {
-                      formKey.currentState!.save();
-                      addDateToJournalEntryValues();
-
-                      print('printing.. $journalEntryValues');
-                      await deleteDatabase('journal.db');
-                      final Database database = await openDatabase(
-                        'journal.db',
-                        version: 1,
-                        onCreate: (Database db, int version) async {
-                          await db.execute('CREATE TABLE IF NOT EXISTS journal_entries(id INTEGER PRIMARY KEY, title TEXT, body TEXT, rating TEXT, date TEXT)');
-                        }
-                      );
-                      await database.transaction( (txn) async {
-                        await txn.rawInsert('INSERT INTO journal_entries(title, body, rating, date) VALUES(?, ?, ?, ?)',
-                            [journalEntryValues.title, journalEntryValues.body, journalEntryValues.rating, journalEntryValues.date]);
-                      });
-                      print('this is saved');
-                      await database.close();
-
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Text('Save Entry')
-                ),
+                cancelButton(context),
+                saveButton(context)
               ],
             )
           ]
@@ -79,9 +38,33 @@ class _JournalEntryFormState extends State<JournalEntryForm> {
     );
   }
 
+  Widget cancelButton(BuildContext context) {
+    return ElevatedButton(
+        onPressed:() {
+          Navigator.of(context).pop();
+        },
+        child: Text('Cancel')
+    );
+  }
+
+  Widget saveButton(BuildContext context){
+    return ElevatedButton(
+        child: Text('Save Entry'),
+        onPressed: () async {
+          if(formKey.currentState!.validate()) {
+            formKey.currentState!.save();
+            addDateToJournalEntryValues();
+            final databaseManager = DatabaseManager.getInstance();
+            databaseManager.saveJournalEntry(dto: journalEntryValues);
+            Navigator.of(context).popAndPushNamed(JournalEntries.routeName);
+          }
+        },
+    );
+  }
+
   void addDateToJournalEntryValues() {
     DateTime _now = DateTime.now();
-    journalEntryValues.date = _now.toString();
+    journalEntryValues.dateTime = _now.toString();
   }
 }
 

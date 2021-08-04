@@ -1,11 +1,12 @@
+import 'package:cs492_project4/models/journal_entry.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
+import '../db/database_manager.dart';
 import '../widgets/journal_scaffold.dart';
-import '../widgets/journal_entry_form.dart';
 import 'journal_entry.dart';
 import 'new_entry.dart';
-import '../widgets/settings_drawer.dart';
 import '../models/journal.dart';
+import '../models/journal_entry.dart';
+import '../db/journal_entry_dao.dart';
 
 class JournalEntries extends StatefulWidget {
   static const routeName = '/';
@@ -16,7 +17,7 @@ class JournalEntries extends StatefulWidget {
 
 class _JournalEntriesState extends State<JournalEntries> {
 
-  late Journal journal;
+  Journal? journal;
 
   @override
   void initState() {
@@ -25,22 +26,8 @@ class _JournalEntriesState extends State<JournalEntries> {
   }
 
   void loadJournal() async {
-    final Database database = await openDatabase(
-      'journal.db',
-      version: 1,
-      onCreate: (Database db, int version) async {
-        await db.execute('CREATE TABLE IF NOT EXISTS journal_entries(id INTEGER PRIMARY KEY, title TEXT, body TEXT, rating TEXT, date TEXT)');
-      }
-    );
-    List<Map> journalRecords = await database.rawQuery('SELECT * FROM journal_entries');
-    final journalEntries = journalRecords.map((record) {
-      return JournalEntry(
-        title: record['title'],
-        body: record['body'],
-        rating: record['rating'],
-        dateTime: DateTime.parse(record['date']));
-    }).toList();
-    print('instance of $journalEntries');
+    final databaseManager = DatabaseManager.getInstance();
+    List<JournalEntry> journalEntries = await JournalEntryDAO.journalEntries(databaseManager: databaseManager);
     setState(() {
       journal = Journal(entries: journalEntries);
     });
@@ -54,28 +41,25 @@ class _JournalEntriesState extends State<JournalEntries> {
       );
     } else {
       return JournalScaffold(
-          title: journal.isEmpty ? 'Welcome' : 'Journal Entries',
-          child: journal.isEmpty ? welcome() : journalList(context)
+          title: journal!.isEmpty ? 'Welcome' : 'Journal Entries',
+          child: journal!.isEmpty ? welcome() : journalList(context)
       );
     }
   }
 
   Widget journalList(BuildContext context){
     return ListView.builder(
-        itemCount: journal.entries.length,
+        itemCount: journal!.entries.length,
         itemBuilder: (context, index) {
           return ListTile(
-              title: Text('Journal Entry ${journal.entries[index].title}'),
-              subtitle: Text('${journal.entries[index].dateTime}'),
+              title: Text('Journal Entry ${journal!.entries[index].title}'),
+              subtitle: Text('${journal!.entries[index].dateTime}'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => JournalEntry(
-                      title: journal.entries[index].title,
-                      body: journal.entries[index].body,
-                      rating: journal.entries[index].rating,
-                      dateTime: journal.entries[index].dateTime,
+                    builder: (context) => JournalEntryScreen(
+                      entry: journal!.entries[index],
                     ),
                   ),
                 );

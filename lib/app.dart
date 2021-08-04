@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/new_entry.dart';
 import 'screens/journal_entry.dart';
 import 'screens/journal_entry_list.dart';
+import 'db/database_manager.dart';
 
 class App extends StatefulWidget {
 

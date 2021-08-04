@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import '../screens/new_entry.dart';
 import '../screens/journal_entry_list.dart';
 import '../widgets/settings_drawer.dart';
+import '../models/journal_entry.dart';
 
-class JournalEntry extends StatelessWidget {
+class JournalEntryScreen extends StatelessWidget {
   static const routeName = 'journal_entry';
-  final String title;
-  final String body;
-  final String rating;
-  final DateTime dateTime;
+  final JournalEntry entry;
 
-  const JournalEntry({Key? key, required this.title, required this.body, required this.rating, required this.dateTime}) : super(key: key);
+  const JournalEntryScreen({Key? key, required this.entry}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +35,7 @@ class JournalEntry extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                    '$title',
+                    '${entry.title}',
                 ),
               ],
             ),
@@ -45,7 +43,7 @@ class JournalEntry extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                    '$dateTime',
+                    '${entry.dateTime}',
                 ),
               ],
             ),
