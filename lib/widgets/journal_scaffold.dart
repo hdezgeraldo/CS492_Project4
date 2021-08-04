@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'settings_drawer.dart';
+import '../screens/new_entry.dart';
 
 class JournalScaffold extends StatelessWidget {
   final String title;
@@ -12,7 +14,15 @@ class JournalScaffold extends StatelessWidget {
       appBar: AppBar(
         title: Text(title)
       ),
-      body: child
+      body: child,
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed(NewEntry.routeName);
+          },
+          child: Icon(Icons.add)
+      ),
+      endDrawer: SettingsDrawer(),
+      endDrawerEnableOpenDragGesture: false,
     );
   }
 }

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 
 class JournalEntryFields {
   late String title;
   late String body;
-  late int rating;
+  late String rating;
+  late String date;
+
+  @override
+  String toString(){
+    return 'Title: $title, Body: $body, Rating: $rating, Date: $date';
+  }
 }
 
 class JournalEntryForm extends StatefulWidget {
@@ -13,7 +20,7 @@ class JournalEntryForm extends StatefulWidget {
 
 class _JournalEntryFormState extends State<JournalEntryForm> {
   final formKey = GlobalKey<FormState>();
-  final journalEntryFields = JournalEntryFields();
+  final journalEntryValues = JournalEntryFields();
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +31,9 @@ class _JournalEntryFormState extends State<JournalEntryForm> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            formTextInput('Title', journalEntryFields),
-            formTextInput('Body', journalEntryFields),
-            formTextInput('Rating', journalEntryFields),
+            formTextInput('Title', journalEntryValues),
+            formTextInput('Body', journalEntryValues),
+            formTextInput('Rating', journalEntryValues),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -38,10 +45,27 @@ class _JournalEntryFormState extends State<JournalEntryForm> {
                     child: Text('Cancel')
                 ),
                 ElevatedButton(
-                  onPressed:() {
+                  onPressed:() async {
                     if(formKey.currentState!.validate()) {
                       formKey.currentState!.save();
-                      // Database.of(context).saveJournalEntry(journalEntryFields);
+                      addDateToJournalEntryValues();
+
+                      print('printing.. $journalEntryValues');
+                      await deleteDatabase('journal.db');
+                      final Database database = await openDatabase(
+                        'journal.db',
+                        version: 1,
+                        onCreate: (Database db, int version) async {
+                          await db.execute('CREATE TABLE IF NOT EXISTS journal_entries(id INTEGER PRIMARY KEY, title TEXT, body TEXT, rating TEXT, date TEXT)');
+                        }
+                      );
+                      await database.transaction( (txn) async {
+                        await txn.rawInsert('INSERT INTO journal_entries(title, body, rating, date) VALUES(?, ?, ?, ?)',
+                            [journalEntryValues.title, journalEntryValues.body, journalEntryValues.rating, journalEntryValues.date]);
+                      });
+                      print('this is saved');
+                      await database.close();
+
                       Navigator.of(context).pop();
                     }
                   },
@@ -53,6 +77,11 @@ class _JournalEntryFormState extends State<JournalEntryForm> {
         ),
       )
     );
+  }
+
+  void addDateToJournalEntryValues() {
+    DateTime _now = DateTime.now();
+    journalEntryValues.date = _now.toString();
   }
 }
 
@@ -68,17 +97,21 @@ Widget formTextInput(String label, final dto) {
         onSaved: (value) {
           switch (label){
             case 'Title':
-              dto.title = value!;
+              dto.title = value!.toString();
               break;
             case 'Body':
-              dto.body = value!;
+              dto.body = value!.toString();
               break;
             case 'Rating':
               dto.rating = value!;
+              break;
           }
         },
         validator: (value) {
           // Perform validation
+          if(label == 'Rating' && value is int){
+
+          }
           if(value == null || value.isEmpty) {
             return 'Please enter a ' + label.toLowerCase();
           } else {
