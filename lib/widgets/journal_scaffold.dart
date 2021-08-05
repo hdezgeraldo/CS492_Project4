@@ -12,7 +12,16 @@ class JournalScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title)
+        title: Text(title),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+            ),
+          ),
+        ],
       ),
       body: child,
       floatingActionButton: FloatingActionButton(

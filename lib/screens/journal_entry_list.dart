@@ -7,6 +7,7 @@ import 'new_entry.dart';
 import '../models/journal.dart';
 import '../models/journal_entry.dart';
 import '../db/journal_entry_dao.dart';
+import '../widgets/single_entry.dart';
 
 class JournalEntries extends StatefulWidget {
   static const routeName = '/';
@@ -47,12 +48,33 @@ class _JournalEntriesState extends State<JournalEntries> {
     }
   }
 
+  Widget layoutDecider() {
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (constraints.maxWidth > 600) {
+            return horizontalLayout(context);
+          } else {
+            return verticalLayout(context);
+          }
+        },
+      ),
+    );
+  }
+
   Widget journalList(BuildContext context){
+    return layoutDecider();
+  }
+
+  Widget journalListBuilder(BuildContext context) {
     return ListView.builder(
         itemCount: journal!.entries.length,
         itemBuilder: (context, index) {
           return ListTile(
-              title: Text('Journal Entry ${journal!.entries[index].title}'),
+              title: Text
+                ('Journal Entry ${journal!.entries[index].title}',
+                  style: Theme.of(context).textTheme.headline6
+              ),
               subtitle: Text('${journal!.entries[index].dateTime}'),
               onTap: () {
                 Navigator.push(
@@ -71,7 +93,16 @@ class _JournalEntriesState extends State<JournalEntries> {
 
   Widget welcome() {
     return Center(
-      child: Text('hello')
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.book_rounded,
+            size: 100.0,
+          ),
+          Text('Journal')
+        ],
+      ),
     );
   }
 
@@ -81,6 +112,28 @@ class _JournalEntriesState extends State<JournalEntries> {
         Navigator.of(context).pushNamed(NewEntry.routeName);
       },
       child: Icon(Icons.add)
+    );
+  }
+
+  Widget verticalLayout(BuildContext context) {
+    return journalListBuilder(context);
+  }
+
+  Widget horizontalLayout(BuildContext context) {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Expanded(
+            child: journalListBuilder(context)
+          ),
+          Expanded(
+              child: SingleEntry(
+                  title: journal!.entries[0].title,
+                  body: journal!.entries[0].body)
+          )
+        ],
+      ),
     );
   }
 }

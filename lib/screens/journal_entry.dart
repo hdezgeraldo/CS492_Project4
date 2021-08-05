@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/new_entry.dart';
-import '../screens/journal_entry_list.dart';
+import '../widgets/single_entry.dart';
 import '../widgets/settings_drawer.dart';
 import '../models/journal_entry.dart';
 
@@ -25,32 +25,16 @@ class JournalEntryScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                    '${entry.title}',
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                    '${entry.dateTime}',
-                ),
-              ],
-            ),
-          ],
-
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Icon(
+            Icons.arrow_back_ios,
+          ),
         ),
       ),
+      body: SingleEntry(title: entry.title, body: entry.body),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).pushNamed(NewEntry.routeName);

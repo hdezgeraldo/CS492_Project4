@@ -10,6 +10,23 @@ class NewEntry extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Journal Entry'),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+            ),
+          ),
+        ],
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Icon(
+            Icons.arrow_back_ios,
+          ),
+        ),
       ),
       body: JournalEntryForm(),
       floatingActionButton: FloatingActionButton(
